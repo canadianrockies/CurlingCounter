@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi Timer Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      height: 100vh;
+    }
+    .timer {
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .display {
+      font-size: 2em;
+      margin: 10px;
+    }
+    .flashing {
+      animation: flash 1s step-start infinite;
+    }
+    @keyframes flash {
+      50% { visibility: hidden; }
+    }
+    .red {
+      color: red;
+    }
+    .controls button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="timer" id="timer1">
+    <h2>Sheet 1</h2>
+    <div class="display">0:00:00</div>
+    <div>
+      Alarm: <input type="number" class="hours" min="0" max="3" value="0">h 
+      <input type="number" class="minutes" min="0" max="59" value="30">m
+    </div>
+    <div class="controls">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="timer" id="timer2">
+    <h2>Sheet 2</h2>
+    <div class="display">0:00:00</div>
+    <div>
+      Alarm: <input type="number" class="hours" min="0" max="3" value="0">h 
+      <input type="number" class="minutes" min="0" max="59" value="30">m
+    </div>
+    <div class="controls">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="timer" id="timer3">
+    <h2>Sheet 3</h2>
+    <div class="display">0:00:00</div>
+    <div>
+      Alarm: <input type="number" class="hours" min="0" max="3" value="0">h 
+      <input type="number" class="minutes" min="0" max="59" value="30">m
+    </div>
+    <div class="controls">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="reset">Reset</button>
+    </div>
+  </div>
+
+  <div class="timer" id="timer4">
+    <h2>Sheet 4</h2>
+    <div class="display">0:00:00</div>
+    <div>
+      Alarm: <input type="number" class="hours" min="0" max="3" value="0">h 
+      <input type="number" class="minutes" min="0" max="59" value="30">m
+    </div>
+    <div class="controls">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="reset">Reset</button>
+    </div>
+  </div>
+
+  <audio id="buzzer">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  </audio>
+
+  <script>
+    class Timer {
+      constructor(root) {
+        this.root = root;
+        this.display = root.querySelector('.display');
+        this.startBtn = root.querySelector('.start');
+        this.stopBtn = root.querySelector('.stop');
+        this.resetBtn = root.querySelector('.reset');
+        this.hoursInput = root.querySelector('.hours');
+        this.minutesInput = root.querySelector('.minutes');
+        this.buzzer = document.getElementById('buzzer');
+
+        this.interval = null;
+        this.elapsed = 0; // seconds
+
+        this.startBtn.addEventListener('click', () => this.start());
+        this.stopBtn.addEventListener('click', () => this.stop());
+        this.resetBtn.addEventListener('click', () => this.reset());
+      }
+
+      start() {
+        if (this.interval) return;
+        this.interval = setInterval(() => {
+          this.elapsed++;
+          this.updateDisplay();
+        }, 1000);
+      }
+
+      stop() {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
+
+      reset() {
+        if (this.interval) return; // must be stopped
+        this.elapsed = 0;
+        this.display.classList.remove('flashing', 'red');
+        this.updateDisplay();
+      }
+
+      updateDisplay() {
+        let h = Math.floor(this.elapsed / 3600);
+        let m = Math.floor((this.elapsed % 3600) / 60);
+        let s = this.elapsed % 60;
+        this.display.textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+        let alarmSeconds = (parseInt(this.hoursInput.value) * 3600) + (parseInt(this.minutesInput.value) * 60);
+
+        if (this.elapsed >= alarmSeconds) {
+          this.display.classList.add('red');
+          this.display.classList.remove('flashing');
+          if (this.elapsed === alarmSeconds) {
+            this.buzzer.play();
+            setTimeout(() => this.buzzer.pause(), 5000);
+          }
+        } else if (this.elapsed >= alarmSeconds - 300) {
+          this.display.classList.add('flashing');
+        } else {
+          this.display.classList.remove('flashing', 'red');
+        }
+      }
+    }
+
+    document.querySelectorAll('.timer').forEach(t => new Timer(t));
+  </script>
+</body>
